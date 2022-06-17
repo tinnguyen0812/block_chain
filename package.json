@@ -26,8 +26,10 @@
     "ethers": "^5.6.8",
     "express": "^4.18.1",
     "http-status-codes": "^2.2.0",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.2.8",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "web3": "^1.7.3"
   },
   "devDependencies": {
     "eslint": "^8.17.0",

@@ -12,8 +12,8 @@ app.use(express.json());
 db.connect();
 // route
 
-// const routes = require("./routes/index.route");
-// routes(app);
+const routes = require("./routes/index");
+routes(app);
 //start server
 app.listen(process.env.PORT || 3000, () => {
   console.log(`listeniing at port:${process.env.PORT}`);

@@ -7,7 +7,7 @@ const walletSchema = new Schema(
   {
     publicKey: { type: String, required: false, max: 64 },
     privateKey: { type: String },
-    amount: { type: Float64Array },
+    balance: { type: Number },
   },
 
   {
