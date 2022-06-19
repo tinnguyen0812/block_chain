@@ -1,24 +1,27 @@
 const wallet = require("../models/wallet.model");
+const transaction = require("../models/transaction.model");
 const { StatusCodes } = require("http-status-codes");
-const Web3 = require("web3");
 const jwt = require("jsonwebtoken");
-const Accounts = require("web3-eth-accounts");
-const accounts = new Accounts(
-  "wss://mainnet.infura.io/ws/v3/ae9b83d1bda24eb199322fa9a0e7e256",
-);
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    "https://mainnet.infura.io/v3/ae9b83d1bda24eb199322fa9a0e7e256",
-  ),
-);
-
+var EC = require("elliptic").ec;
+const ec = new EC("secp256k1");
+const crypto = require("crypto");
+const { Blockchain } = require("../services/blockchain");
+//----------------------------------//
+function caculateHash(fromAddress, toAddress, amount, timestamp) {
+  return crypto
+    .createHash("sha256")
+    .update(fromAddress + toAddress + amount + timestamp)
+    .digest("hex");
+}
 class WalletController {
   async create(req, res) {
     try {
-      const user = await web3.eth.accounts.create();
-      wallet.create({
-        publicKey: user.address,
-        privateKey: user.privateKey,
+      const key = ec.genKeyPair();
+      const publicKey = key.getPublic("hex");
+      const privateKey = key.getPrivate("hex");
+      const user = await wallet.create({
+        publicKey: publicKey,
+        privateKey: privateKey,
         balance: 100,
       });
       res.status(StatusCodes.OK).send({ user });
@@ -58,8 +61,54 @@ class WalletController {
       console.log(err);
     }
   }
-  async createTrans(req, res) {}
-  async signTrans(req, res) {}
+  async sendTrans(req, res) {
+    const sender = req.body.from;
+    const receiver = req.body.to;
+    const value = req.body.value;
+    try {
+      const trans = await transaction.create({
+        fromAdress: sender,
+        toAddress: receiver,
+        value: value,
+        date: Date.now(),
+      });
+      res.status(StatusCodes.OK).send({
+        transaction: trans,
+      });
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
+  async signTrans(req, res) {
+    try {
+      let trans = await transaction.findById(req.params.id);
+      const signingKey = req.body.privateKey;
+      const hash = caculateHash(
+        trans.fromAdress,
+        trans.toAddress,
+        trans.value,
+        trans.date,
+      );
+      const myKey = ec.keyFromPrivate(signingKey);
+      const savjeeCoin = new Blockchain();
+      const sig = myKey.sign(hash, "base64").toDER("hex");
+      trans.signature = sig;
+      trans.save();
+      const listTrans = await transaction.find();
+      listTrans.forEach((item) => {
+        savjeeCoin.addTransaction(trans);
+        savjeeCoin.minePendingTransactions(trans.fromAdress);
+      });
+      console.log(savjeeCoin);
+      res.status(StatusCodes.OK).send({
+        transaction: trans,
+      });
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
   async checkTrans(req, res) {}
 }
 module.exports = new WalletController();

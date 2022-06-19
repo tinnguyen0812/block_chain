@@ -1,8 +1,10 @@
 const express = require("express");
 const walletController = require("../controllers/wallet.controller");
 const router = express.Router();
-const { checkToken } = require("../middlewares/authentication");
+const { checkToken } = require("../services/authentication");
 router.get("/", walletController.create);
 router.get("/balance/:id", checkToken, walletController.getBalance);
 router.post("/login", walletController.login);
+router.post("/send", walletController.sendTrans);
+router.put("/sign/:id", walletController.signTrans);
 module.exports = router;
