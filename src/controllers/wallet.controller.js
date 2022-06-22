@@ -29,7 +29,6 @@ class WalletController {
         balance: 100,
       });
       res.status(StatusCodes.OK).send({ user });
-      console.log(user);
     } catch (err) {
       console.log(err);
       return err;
@@ -131,6 +130,18 @@ class WalletController {
       let trans = await transaction.find({ fromAddress: req.params.address });
       res.status(StatusCodes.OK).send({
         transaction: trans,
+      });
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
+  async getWallet(req, res) {
+    try {
+      let data = await wallet.findById(req.params.id);
+      console.log(data);
+      res.status(StatusCodes.OK).send({
+        wallet: data,
       });
     } catch (err) {
       console.log(err);

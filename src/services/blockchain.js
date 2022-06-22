@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const Transaction = require("../models/transaction.model");
+const wallet = require("../models/wallet.model");
 class Block {
   /**
    * @param {number} timestamp
@@ -112,7 +113,6 @@ class Blockchain {
       this.getLatestBlock().hash,
     );
     block.mineBlock(this.difficulty);
-
     console.log("Block successfully mined!");
     this.chain.push(block);
 

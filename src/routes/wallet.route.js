@@ -8,4 +8,5 @@ router.post("/login", walletController.login);
 router.post("/send", walletController.sendTrans);
 router.put("/sign/:id", walletController.signTrans);
 router.get("/getTrans/:address", walletController.getTrans);
+router.get("/getWallet/:id", walletController.getWallet);
 module.exports = router;
