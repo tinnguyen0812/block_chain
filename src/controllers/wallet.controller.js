@@ -13,6 +13,10 @@ function caculateHash(fromAddress, toAddress, amount, timestamp) {
     .update(fromAddress + toAddress + amount + timestamp)
     .digest("hex");
 }
+findWallet = async (address) => {
+  const user = await wallet.findOne({ publicKey: address });
+  return user;
+};
 class WalletController {
   async create(req, res) {
     try {
@@ -42,9 +46,11 @@ class WalletController {
           .send({ msg: "Wrong private key" });
       }
       const token = await jwt.sign(key.privateKey, process.env.SECRETKEY);
-      return res
-        .status(StatusCodes.OK)
-        .send({ msg: "Login success", Token: token });
+      return res.status(StatusCodes.OK).send({
+        msg: "Login success",
+        address: key.publicKey,
+        private: key.privateKey,
+      });
     } catch (err) {
       console.log(err);
       return err;
@@ -62,18 +68,20 @@ class WalletController {
     }
   }
   async sendTrans(req, res) {
+    console.log(req.body);
     const sender = req.body.from;
     const receiver = req.body.to;
     const value = req.body.value;
     try {
       const trans = await transaction.create({
-        fromAdress: sender,
+        fromAddress: sender,
         toAddress: receiver,
         value: value,
         date: Date.now(),
       });
       res.status(StatusCodes.OK).send({
         transaction: trans,
+        save: true,
       });
     } catch (err) {
       console.log(err);
@@ -83,6 +91,8 @@ class WalletController {
   async signTrans(req, res) {
     try {
       let trans = await transaction.findById(req.params.id);
+      let sender = await findWallet(trans.fromAddress);
+      let receiver = await findWallet(trans.toAddress);
       const signingKey = req.body.privateKey;
       const hash = caculateHash(
         trans.fromAdress,
@@ -91,16 +101,34 @@ class WalletController {
         trans.date,
       );
       const myKey = ec.keyFromPrivate(signingKey);
-      const savjeeCoin = new Blockchain();
+      const myCoin = new Blockchain();
       const sig = myKey.sign(hash, "base64").toDER("hex");
       trans.signature = sig;
       trans.save();
+      sender.balance = sender.balance - trans.value;
+      sender.save();
+      receiver.balance = receiver.balance + trans.value;
+      receiver.save();
       const listTrans = await transaction.find();
       listTrans.forEach((item) => {
-        savjeeCoin.addTransaction(trans);
-        savjeeCoin.minePendingTransactions(trans.fromAdress);
+        myCoin.addTransaction(trans);
+        myCoin.minePendingTransactions(
+          "041614100faa121e2ecab61dda08f22e0b420876e7eb5be0f9e69512a3d1136c4b76cedd9c7f3b5fec8d7cac4a08e73b7cdab5c797e629626d2dec355d01e1903a",
+        );
       });
-      console.log(savjeeCoin);
+      console.log(myCoin);
+      res.status(StatusCodes.OK).send({
+        transaction: trans,
+        save: true,
+      });
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
+  async getTrans(req, res) {
+    try {
+      let trans = await transaction.find({ fromAddress: req.params.address });
       res.status(StatusCodes.OK).send({
         transaction: trans,
       });
@@ -109,6 +137,5 @@ class WalletController {
       return err;
     }
   }
-  async checkTrans(req, res) {}
 }
 module.exports = new WalletController();
