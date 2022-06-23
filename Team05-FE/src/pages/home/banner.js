@@ -19,6 +19,10 @@ class Banner extends React.Component {
                     <Link to="/login" className="btn-pink">
                       Login
                     </Link>
+                    " "
+                    <Link to="/edit-product" className="btn-pink">
+                      Block List
+                    </Link>
                   </div>
                 </div>
               </div>

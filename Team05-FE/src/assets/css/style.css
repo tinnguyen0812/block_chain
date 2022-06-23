@@ -2367,6 +2367,9 @@ html.menu-opened body {
   background-color: #fff;
 }
 .account-page .content {
+  height: 100vh;
+  display: flex;
+  align-items: center;
   padding: 50px 0;
 }
 .login-right {
@@ -2457,6 +2460,7 @@ html.menu-opened body {
 -----------------------*/
 
 .section-search {
+  height: 100vh;
   background: #fff url(../img/search-bg.png) no-repeat bottom center;
   background-size: cover;
   background-repeat: no-repeat;

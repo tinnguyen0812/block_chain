@@ -100,7 +100,6 @@ class WalletController {
         trans.date,
       );
       const myKey = ec.keyFromPrivate(signingKey);
-      const myCoin = new Blockchain();
       const sig = myKey.sign(hash, "base64").toDER("hex");
       trans.signature = sig;
       trans.save();
@@ -108,14 +107,7 @@ class WalletController {
       sender.save();
       receiver.balance = receiver.balance + trans.value;
       receiver.save();
-      const listTrans = await transaction.find();
-      listTrans.forEach((item) => {
-        myCoin.addTransaction(trans);
-        myCoin.minePendingTransactions(
-          "041614100faa121e2ecab61dda08f22e0b420876e7eb5be0f9e69512a3d1136c4b76cedd9c7f3b5fec8d7cac4a08e73b7cdab5c797e629626d2dec355d01e1903a",
-        );
-      });
-      console.log(myCoin);
+
       res.status(StatusCodes.OK).send({
         transaction: trans,
         save: true,
@@ -135,6 +127,21 @@ class WalletController {
       console.log(err);
       return err;
     }
+  }
+  async getBlockChain(req, res) {
+    const listTrans = await transaction.find();
+    const myCoin = new Blockchain();
+    listTrans.forEach((item) => {
+      console.log(item);
+      myCoin.addTransaction(item);
+      myCoin.minePendingTransactions(
+        "041614100faa121e2ecab61dda08f22e0b420876e7eb5be0f9e69512a3d1136c4b76cedd9c7f3b5fec8d7cac4a08e73b7cdab5c797e629626d2dec355d01e1903a",
+      );
+    });
+    console.log(myCoin);
+    res.status(StatusCodes.OK).send({
+      myCoin,
+    });
   }
   async getWallet(req, res) {
     try {
